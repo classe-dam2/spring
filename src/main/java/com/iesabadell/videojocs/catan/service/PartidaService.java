@@ -1,5 +1,6 @@
 package com.iesabadell.videojocs.catan.service;
 
+import com.iesabadell.videojocs.catan.dto.HexagonTaulerDTO;
 import com.iesabadell.videojocs.catan.models.Aresta;
 import com.iesabadell.videojocs.catan.models.Hexagon;
 import com.iesabadell.videojocs.catan.models.HexagonVertex;
@@ -15,8 +16,11 @@ import com.iesabadell.videojocs.catan.repository.PartidaRepository;
 import com.iesabadell.videojocs.catan.repository.VertexRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,6 +37,10 @@ import java.util.stream.Stream;
 
 @Service
 public class PartidaService {
+
+    @Autowired
+    private PartidaRepository partidaRepository;
+
 
     private static final String CARPETA_CSV = "dades/";
 
@@ -79,6 +87,27 @@ public class PartidaService {
      * Tot dins d'una sola transacció: si un CSV és invàlid no queda mig tauler a la BD.
      * Retorna el nombre de registres del tauler creats (hexàgons + vèrtexs + arestes + hexagon_vertex).
      */
+
+    @Transactional
+    public ResponseEntity<?> tauler(Integer idPartida) {
+        Partida partida = partidaRepository.findById(idPartida)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "La partida " + idPartida + " no existeix"));
+
+        // lladre és EAGER a Partida: ja ve carregat
+        Integer idLladre = partida.getLladre() != null ? partida.getLladre().getId() : null;
+        List result = partidaRepository.findTauler(idPartida).stream()
+                .map(h -> HexagonTaulerDTO.de(h, h.getId().equals(idLladre)))
+                .toList();
+
+
+        return ResponseEntity.ok()
+                .header("Header-Customitzat", "Total videojocs: " + result.size())
+                .body(result);
+    }
+
+
+
     @Transactional
     public int carregarDades() {
         Partida nova = new Partida();
