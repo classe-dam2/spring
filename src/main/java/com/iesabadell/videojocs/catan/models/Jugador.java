@@ -17,7 +17,7 @@ import java.util.List;
         query = "from Jugador j where j.partida.id = :idPartida order by j.ordreTorn")
 @Entity
 @Table(name = "jugador")
-@Check(constraints = "ordreTorn between 1 and 4 and cavallersJugats >= 0")
+@Check(constraints = "ordre_torn between 1 and 4 and cavallers_jugats >= 0")
 @DynamicInsert
 public class Jugador {
     @Id
