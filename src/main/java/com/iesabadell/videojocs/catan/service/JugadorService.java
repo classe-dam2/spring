@@ -1,4 +1,4 @@
-package com.iesabadell.videojocs.catan.services;
+package com.iesabadell.videojocs.catan.service;
 
 import com.iesabadell.videojocs.catan.repository.JugadorRepository;
 import com.iesabadell.videojocs.catan.repository.PartidaRepository;
