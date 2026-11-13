@@ -16,8 +16,8 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
  * Quan @Valid falla, Spring NO arriba a cridar el mètode del controlador (ni, per tant, el servei):
  * llança una excepció. Aquesta classe la captura per a TOTS els controladors i en fa la resposta.
  *
- * La resta d'errors (no existeix, duplicat, regla de negoci) els resol el servei retornant
- * el ResponseEntity amb el codi que toca.
+ * La resta d'errors (no existeix, regla de negoci) els llança el servei com a ReglaJocException
+ * (o ResponseStatusException): fan rollback de la transacció i es converteixen aquí en la resposta.
  */
 @RestControllerAdvice
 public class GestorError {
@@ -44,6 +44,12 @@ public class GestorError {
         return ResponseEntity.badRequest()
                 .header("Header-Customitzat", "PARAMETRES NO VALIDS")
                 .body(missatge);
+    }
+
+    // Una regla del joc no es compleix (no existeix, no és el teu torn, recursos insuficients...) -> el codi de l'excepció
+    @ExceptionHandler(ReglaJocException.class)
+    public ResponseEntity<String> reglaJoc(ReglaJocException e) {
+        return ResponseEntity.status(e.getStatus()).body(e.getMessage());
     }
 
 }

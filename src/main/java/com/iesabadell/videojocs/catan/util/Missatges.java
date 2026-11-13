@@ -11,12 +11,14 @@ public final class Missatges {
     // Comprovació comuna (partida, torn, estat, daus)
     public static final String PARTIDA_NO_EXISTEIX = "La partida %d no existeix.";
     public static final String JUGADOR_NO_EXISTEIX = "El jugador %d no existeix.";
+    public static final String JUGADORS_INVALIDS = "Una partida ha de tenir entre 2 i 4 jugadors.";
     public static final String PARTIDA_FINALITZADA = "La partida ja ha finalitzat.";
     public static final String PARTIDA_NO_EN_CURS = "La partida no està en curs.";
     public static final String NO_ES_EL_SEU_TORN = "No és el teu torn.";
     public static final String NOMES_EN_CURS = "Aquesta acció no es pot fer durant la preparació.";
     public static final String DAUS_NO_TIRATS = "Primer has de tirar els daus.";
     public static final String DAUS_JA_TIRATS = "Ja has tirat els daus aquest torn.";
+    public static final String LLADRE_PENDENT = "Cal moure el lladre abans de continuar.";
 
     // Construccions
     public static final String ARESTA_NO_TROBADA = "L'aresta no existeix en aquesta partida.";

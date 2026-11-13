@@ -50,8 +50,8 @@ public class Partida {
     @Column(name = "lladrePendent", nullable = false)
     private boolean lladrePendent;
 
-    // LAZY: col·lecció; els DAO la recorren sempre dins de la sessió
-    @OneToMany(mappedBy = "partida", fetch = FetchType.LAZY)
+    // LAZY: col·lecció; es recorre dins de la transacció. cascade: crearPartida guarda els jugadors amb la partida
+    @OneToMany(mappedBy = "partida", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @OrderBy("ordreTorn")
     private List<Jugador> jugadors = new ArrayList<>();
 

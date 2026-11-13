@@ -1,5 +1,6 @@
 package com.iesabadell.videojocs.catan.service;
 
+import com.iesabadell.videojocs.catan.exception.ReglaJocException;
 import com.iesabadell.videojocs.catan.models.Partida;
 import com.iesabadell.videojocs.catan.models.*;
 import com.iesabadell.videojocs.catan.models.abstracts.Ciutat;
@@ -10,9 +11,10 @@ import com.iesabadell.videojocs.catan.models.enums.TipusCarta;
 import com.iesabadell.videojocs.catan.models.enums.TipusRecurs;
 import com.iesabadell.videojocs.catan.models.enums.TipusTerreny;
 import com.iesabadell.videojocs.catan.util.Missatges;
+import org.springframework.http.HttpStatus;
 
 /**
- * Regles i operacions que comparteixen els DAO: la comprovació comuna d'una acció,
+ * Regles i operacions que comparteixen els serveis: la comprovació comuna d'una acció,
  * el recompte de punts, els recursos i la victòria.
  */
 final class ReglesJoc {
@@ -22,28 +24,38 @@ final class ReglesJoc {
     /*
      * Comprovació comuna a totes les accions d'un jugador: partida no finalitzada, torn del jugador
      * i, en EN_CURS, daus tirats. Si permetPreparacio és fals, l'acció només val en EN_CURS.
-     * Torna el motiu del rebuig, o null si es pot fer l'acció.
+     * Si l'acció no es pot fer, llança ReglaJocException (409) amb el motiu.
      */
-    static String validarAccio(Partida partida, Jugador jugador, boolean permetPreparacio) {
-        if (partida.getEstat() == EstatPartida.FINALITZADA) return Missatges.PARTIDA_FINALITZADA;
-        if (!esElSeuTorn(jugador, partida)) return Missatges.NO_ES_EL_SEU_TORN;
+    static void validarAccio(Partida partida, Jugador jugador, boolean permetPreparacio) {
+        if (partida.getEstat() == EstatPartida.FINALITZADA) throw conflicte(Missatges.PARTIDA_FINALITZADA);
+        if (!esElSeuTorn(jugador, partida)) throw conflicte(Missatges.NO_ES_EL_SEU_TORN);
         if (partida.getEstat() == EstatPartida.PREPARACIO) {
-            return permetPreparacio ? null : Missatges.NOMES_EN_CURS;
+            if (!permetPreparacio) throw conflicte(Missatges.NOMES_EN_CURS);
+            return;
         }
-        if (partida.isLladrePendent()) return "Cal moure el lladre abans de continuar";
-        if (!partida.isDausTirats()) return Missatges.DAUS_NO_TIRATS;
-        return null;
+        if (partida.isLladrePendent()) throw conflicte(Missatges.LLADRE_PENDENT);
+        if (!partida.isDausTirats()) throw conflicte(Missatges.DAUS_NO_TIRATS);
+    }
+
+    /*
+     * Comprovació de tirar els daus: partida en curs, torn del jugador i daus encara sense tirar.
+     * No es pot fer servir validarAccio perquè aquesta exigeix justament que els daus ja estiguin tirats.
+     */
+    static void validarTirada(Partida partida, Jugador jugador) {
+        if (partida.getEstat() == EstatPartida.FINALITZADA) throw conflicte(Missatges.PARTIDA_FINALITZADA);
+        if (!esElSeuTorn(jugador, partida)) throw conflicte(Missatges.NO_ES_EL_SEU_TORN);
+        if (partida.getEstat() == EstatPartida.PREPARACIO) throw conflicte(Missatges.NOMES_EN_CURS);
+        if (partida.isDausTirats()) throw conflicte(Missatges.DAUS_JA_TIRATS);
+    }
+
+    // Rebuig d'una acció per l'estat de la partida; el rollback el fa el @Transactional del servei
+    static ReglaJocException conflicte(String missatge) {
+        return new ReglaJocException(HttpStatus.CONFLICT, missatge);
     }
 
     static boolean esElSeuTorn(Jugador jugador, Partida partida) {
         Jugador actiu = partida.getJugadorActiu();
         return actiu != null && actiu.getId().equals(jugador.getId());
-    }
-
-    // Desfà la transacció i mostra el motiu: una acció rebutjada no ha de canviar res a la BD
-    static void rebutjar(Session session, String missatge) {
-        System.out.println(missatge);
-        session.getTransaction().rollback();
     }
 
     static int quantitat(Jugador jugador, TipusRecurs tipus) {
@@ -72,8 +84,8 @@ final class ReglesJoc {
         }
     }
 
-    // Suma n unitats al recurs; si el jugador encara no té la fila d'aquest tipus, la crea
-    static void afegir(Session session, Jugador jugador, TipusRecurs tipus, int n) {
+    // Suma n unitats al recurs; si el jugador encara no té la fila d'aquest tipus, la crea (Jugador.recursos fa cascade)
+    static void afegir(Jugador jugador, TipusRecurs tipus, int n) {
         for (RecursJugador r : jugador.getRecursos()) {
             if (r.getTipus() == tipus) {
                 r.setQuantitat(r.getQuantitat() + n);
@@ -84,7 +96,6 @@ final class ReglesJoc {
         nou.setJugador(jugador);
         nou.setTipus(tipus);
         nou.setQuantitat(n);
-        session.persist(nou);
         jugador.getRecursos().add(nou);
     }
 
@@ -170,15 +181,14 @@ final class ReglesJoc {
 
     /*
      * Si el jugador ha arribat als punts per guanyar, la partida passa a FINALITZADA i es guarda el guanyador.
-     * Torna cert si la partida ha acabat.
+     * Torna cert si la partida ha acabat; el missatge de victòria (INFO_GUANYADOR) el munta qui crida.
      */
-    static boolean comprovarVictoria(Session session, Partida partida, Jugador jugador) {
+    static boolean comprovarVictoria(Partida partida, Jugador jugador) {
         if (partida.getEstat() == EstatPartida.FINALITZADA) return true;
         int punts = calcularPunts(jugador);
         if (punts < partida.getPuntsPerGuanyar()) return false;
         partida.setEstat(EstatPartida.FINALITZADA);
         partida.setJugadorGuanyador(jugador);
-        System.out.println(String.format(Missatges.INFO_GUANYADOR, jugador.getNom(), punts));
         return true;
     }
 }

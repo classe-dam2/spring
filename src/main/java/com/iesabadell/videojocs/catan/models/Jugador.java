@@ -52,8 +52,9 @@ public class Jugador {
     @OneToMany(mappedBy = "jugador", fetch = FetchType.LAZY)
     private List<CartaDesenvolupament> cartes = new ArrayList<>();
     
-    // LAZY: es llegeix dins de la sessió quan cal comprovar o modificar recursos
-    @OneToMany(mappedBy = "jugador", fetch = FetchType.LAZY)
+    // LAZY: es llegeix dins de la transacció quan cal comprovar o modificar recursos.
+    // cascade: una fila RecursJugador nova afegida a la llista es guarda amb el jugador
+    @OneToMany(mappedBy = "jugador", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecursJugador> recursos = new ArrayList<>();
     
     // LAZY: creix durant la partida; els recomptes es fan des del tauler de la partida

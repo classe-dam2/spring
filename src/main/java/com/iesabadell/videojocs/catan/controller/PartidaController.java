@@ -30,14 +30,12 @@ public class PartidaController {
     @PostMapping("/partida")
     public ResponseEntity<?> crearPartida(@RequestParam List<String> jugadors, @RequestParam Optional<Integer> puntsPerGuanyar) {
 
-        System.out.println(jugadors + " - "+ puntsPerGuanyar);
-
         return service.crearPartida(jugadors, puntsPerGuanyar);
 
     }
 
     @PostMapping("/partida/{idPartida}/daus")
-    public ResponseEntity<?> tirarDaus(@PathVariable Integer idDaus) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> tirarDaus(@PathVariable Integer idPartida, @RequestParam Integer idJugador) {
+        return service.tirarDaus(idPartida, idJugador);
     }
 }

@@ -100,7 +100,13 @@ public class CarregarService {
         nova.setEstat(EstatPartida.PREPARACIO);
         nova.setDataInici(LocalDateTime.now());
         partida.save(nova);
+        return crearTauler(nova);
+    }
 
+    // Crea el tauler (hexàgons, vèrtexs, arestes) d'una partida ja guardada, amb el lladre al desert.
+    // També el fa servir PartidaService.crearPartida.
+    @Transactional
+    public int crearTauler(Partida nova) {
         Map<Integer, Hexagon> hexagons = carregarHexagons(nova);
         Map<Integer, Vertex> vertexs = carregarVertexs(nova);
         int arestes = carregarArestes(nova, vertexs);
