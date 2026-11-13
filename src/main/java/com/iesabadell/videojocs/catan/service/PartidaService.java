@@ -1,6 +1,7 @@
 package com.iesabadell.videojocs.catan.service;
 
 import com.iesabadell.videojocs.catan.dto.HexagonTaulerDTO;
+import com.iesabadell.videojocs.catan.dto.PartidaResponseDTO;
 import com.iesabadell.videojocs.catan.models.Jugador;
 import com.iesabadell.videojocs.catan.models.Partida;
 import com.iesabadell.videojocs.catan.repository.PartidaRepository;
@@ -60,7 +61,8 @@ public class PartidaService {
         }
 
         partidaRepository.save(p);
-
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(PartidaResponseDTO.de(p));
 
     }
 
