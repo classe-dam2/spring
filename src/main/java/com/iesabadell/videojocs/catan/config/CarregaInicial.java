@@ -1,6 +1,7 @@
 package com.iesabadell.videojocs.catan.config;
 
 import com.iesabadell.videojocs.catan.repository.PartidaRepository;
+import com.iesabadell.videojocs.catan.service.CarregarService;
 import com.iesabadell.videojocs.catan.service.PartidaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -20,7 +21,7 @@ import com.iesabadell.videojocs.catan.service.JugadorService;
 public class CarregaInicial implements CommandLineRunner {
 
     @Autowired
-    private PartidaService service;
+    private CarregarService service;
 
     @Autowired
     private PartidaRepository vRepository;

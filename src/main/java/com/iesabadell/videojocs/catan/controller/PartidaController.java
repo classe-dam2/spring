@@ -1,18 +1,18 @@
 package com.iesabadell.videojocs.catan.controller;
 
 import com.iesabadell.videojocs.catan.dto.HexagonTaulerDTO;
+import com.iesabadell.videojocs.catan.models.Jugador;
 import com.iesabadell.videojocs.catan.models.Partida;
 import com.iesabadell.videojocs.catan.repository.PartidaRepository;
 import com.iesabadell.videojocs.catan.service.PartidaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class PartidaController {
@@ -25,5 +25,14 @@ public class PartidaController {
     public ResponseEntity<?> tauler(@PathVariable Integer idPartida) {
 
         return service.tauler(idPartida);
+    }
+
+    @PostMapping("/partida")
+    public ResponseEntity<?> crearPartida(@RequestParam List<String> jugadors, @RequestParam Optional<Integer> puntsPerGuanyar) {
+
+        System.out.println(jugadors + " - "+ puntsPerGuanyar);
+
+        return service.crearPartida(jugadors, puntsPerGuanyar);
+
     }
 }
