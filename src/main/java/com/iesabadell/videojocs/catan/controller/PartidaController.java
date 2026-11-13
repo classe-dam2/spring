@@ -35,4 +35,9 @@ public class PartidaController {
         return service.crearPartida(jugadors, puntsPerGuanyar);
 
     }
+
+    @PostMapping("/partida/{idPartida}/daus")
+    public ResponseEntity<?> tirarDaus(@PathVariable Integer idDaus) {
+        return ResponseEntity.ok().build();
+    }
 }

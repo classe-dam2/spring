@@ -15,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class PartidaService {
@@ -64,6 +65,49 @@ public class PartidaService {
         
         return ResponseEntity.status(HttpStatus.CREATED).body(PartidaResponseDTO.de(p));
 
+    }
+
+
+    public ResponseEntity<?> tirarDaus(Integer idPartida) {
+
+        Random r = new Random();
+        int dau1 = r.nextInt(6) + 1;
+        int dau2 = r.nextInt(6) + 1;
+
+        int tirada = dau1 + dau2;
+
+        Optional<Partida> p = partidaRepository.findById(idPartida);
+
+        if (p.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Partida partida = p.get();
+
+        partida.setUltimaTirada(tirada);
+        partida.setDausTirats(true);
+
+
+    }
+
+    private void descartarRecursos(Partida partida) {
+        for (Jugador jugador : partida.getJugadors()) {
+            int total = ReglesJoc.totalRecursos(jugador);
+            if (total <= 7) continue;
+
+            int perDescartar = total / 2;
+            for (int i = 0; i < perDescartar; i++) {
+                int index = RANDOM.nextInt(total);
+                for (RecursJugador recurs : jugador.getRecursos()) {
+                    if (index < recurs.getQuantitat()) {
+                        ReglesJoc.descomptar(jugador, recurs.getTipus(), 1);
+                        total--;
+                        break;
+                    }
+                    index -= recurs.getQuantitat();
+                }
+            }
+        }
     }
 
 
