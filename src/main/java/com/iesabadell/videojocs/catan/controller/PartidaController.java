@@ -36,7 +36,7 @@ public class PartidaController {
     }
 
     @PostMapping("/{idPartida}/daus")
-    public ResponseEntity<?> tirarDaus(@PathVariable Integer idPartida, @RequestParam Integer idJugador) {
+    public ResponseEntity<?> tirarDaus(@PathVariable Integer idPartida, @RequestParam(required = false) Integer idJugador) {
         return service.tirarDaus(idPartida, idJugador);
     }
 }

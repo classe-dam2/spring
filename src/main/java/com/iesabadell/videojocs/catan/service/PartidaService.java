@@ -22,6 +22,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -99,9 +101,10 @@ public class PartidaService {
         Partida partida = partidaRepository.findById(idPartida)
                 .orElseThrow(() -> new ReglaJocException(HttpStatus.NOT_FOUND,
                         String.format(Missatges.PARTIDA_NO_EXISTEIX, idPartida)));
-        Jugador jugador = jugadorRepository.findById(idJugador)
-                .orElseThrow(() -> new ReglaJocException(HttpStatus.NOT_FOUND,
-                        String.format(Missatges.JUGADOR_NO_EXISTEIX, idJugador)));
+        Jugador jugador = idJugador == null ? partida.getJugadorActiu() :
+                jugadorRepository.findById(idJugador)
+                        .orElseThrow(() -> new ReglaJocException(HttpStatus.NOT_FOUND,
+                                String.format(Missatges.JUGADOR_NO_EXISTEIX, idJugador)));
         ReglesJoc.validarTirada(partida, jugador);
 
         int dau1 = RANDOM.nextInt(6) + 1;
@@ -110,13 +113,14 @@ public class PartidaService {
 
         partida.setUltimaTirada(tirada);
         partida.setDausTirats(true);
+        Map<Integer, Map<TipusRecurs, Integer>> recursos = new LinkedHashMap<>();
         if (tirada == TIRADA_SENSE_PRODUCCIO) {
             descartarRecursos(partida);
             partida.setLladrePendent(true);
         } else {
-            produir(partida, tirada);
+            produir(partida, tirada, recursos);
         }
-        return ResponseEntity.ok(Map.of("dau1", dau1, "dau2", dau2, "tirada", tirada));
+        return ResponseEntity.ok(Map.of("dau1", dau1, "dau2", dau2, "tirada", tirada, "recursos", recursos));
     }
 
     private void descartarRecursos(Partida partida) {
@@ -139,7 +143,7 @@ public class PartidaService {
         }
     }
 
-    private void produir(Partida partida, int tirada) {
+    private void produir(Partida partida, int tirada, Map<Integer, Map<TipusRecurs, Integer>> recursos) {
         for (Hexagon h : partida.getHexagons()) {
             if (h.getNumero() == null || h.getNumero() != tirada || esElLladre(partida, h)) continue;
             TipusRecurs recurs = ReglesJoc.recursDe(h.getTerreny());
@@ -148,6 +152,8 @@ public class PartidaService {
                 if (a == null) continue;
                 int quantitat = a instanceof Ciutat ? 2 : 1;
                 ReglesJoc.afegir(a.getJugador(), recurs, quantitat);
+                recursos.computeIfAbsent(a.getJugador().getId(), id -> new EnumMap<>(TipusRecurs.class))
+                        .merge(recurs, quantitat, Integer::sum);
             }
         }
     }

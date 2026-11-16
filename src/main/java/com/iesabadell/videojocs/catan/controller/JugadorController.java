@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 // Prefix de totes les URL d'aquesta classe: localhost:8080/api/plataformes
@@ -21,4 +22,8 @@ public class JugadorController {
     	return service.recursos(idJugador);
     }
 
+    @PostMapping("/{idJugador}/passar")
+    public ResponseEntity<String> passarTorn(@PathVariable Integer idJugador) {
+        return service.passarTorn(idJugador);
+    }
 }
