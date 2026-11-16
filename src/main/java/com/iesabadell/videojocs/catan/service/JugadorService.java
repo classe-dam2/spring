@@ -47,7 +47,7 @@ public class JugadorService {
     @Transactional
     public ResponseEntity<String> passarTorn(Integer idJugador) {
 
-        Jugador j = jugador.findById(idJugador).orElseThrow(() -> new ReglaJocException(HttpStatus.NOT_FOUND,
+        Jugador j = jugadorRepository.findById(idJugador).orElseThrow(() -> new ReglaJocException(HttpStatus.NOT_FOUND,
                 String.format(Missatges.JUGADOR_NO_EXISTEIX, idJugador)));
 
 
