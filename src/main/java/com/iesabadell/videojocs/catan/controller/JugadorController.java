@@ -23,7 +23,14 @@ public class JugadorController {
     }
 
     @PostMapping("/{idJugador}/passar")
-    public ResponseEntity<String> passarTorn(@PathVariable Integer idJugador) {
+    public ResponseEntity<?> passarTorn(@PathVariable Integer idJugador) {
         return service.passarTorn(idJugador);
+    }
+    
+    @PostMapping("/{idJugador}/construir")
+    public ResponseEntity<?> construir(@PathVariable Integer idJugador,
+            @RequestParam String tipo, @RequestParam Integer posicio) {
+
+        return service.construir(idJugador, tipo, posicio);
     }
 }
