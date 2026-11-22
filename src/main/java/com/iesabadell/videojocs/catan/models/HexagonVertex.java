@@ -1,0 +1,90 @@
+package com.iesabadell.videojocs.catan.models;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.hibernate.annotations.Check;
+import org.hibernate.annotations.DynamicInsert;
+
+@Entity
+@Table(name = "hexagonvertex", uniqueConstraints = @UniqueConstraint(columnNames = {"id_hexagon", "id_vertex"}))
+@Check(constraints = "posicio between 0 and 5")
+@DynamicInsert
+public class HexagonVertex {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
+	private Integer id;
+	
+	@Min(value = 0, message = "La posicio no pot ser menor a cero")
+	@Max(value = 5, message = "La posicio no pot ser major a cinc")
+	@Column(name = "posicio", nullable = false)
+	private Integer posicio;
+	
+	// LAZY: referència de tornada; s'hi arriba sempre des de l'hexàgon
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_hexagon", nullable = false)
+	private Hexagon hexagon;
+
+	// EAGER: una sola referència; sempre es mira què hi ha construït al vèrtex (producció, tauler)
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "id_vertex", nullable = false)
+	private Vertex vertex;
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public Integer getPosicio() {
+		return posicio;
+	}
+
+	public void setPosicio(Integer posicio) {
+		this.posicio = posicio;
+	}
+
+	public Hexagon getHexagon() {
+		return hexagon;
+	}
+
+	public void setHexagon(Hexagon hexagon) {
+		this.hexagon = hexagon;
+	}
+
+	public Vertex getVertex() {
+		return vertex;
+	}
+
+	public void setVertex(Vertex vertex) {
+		this.vertex = vertex;
+	}
+
+	// Iguals si tenen el mateix id; una entitat nova (id null) només és igual a ella mateixa.
+	// Es fa servir getId() i no el camp perquè en un proxy els camps són buits.
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (!(obj instanceof HexagonVertex other)) return false;
+		return getId() != null && getId().equals(other.getId());
+	}
+
+	// Constant: no pot canviar quan l'entitat rep l'id, ni dependre de la classe d'un proxy
+	@Override
+	public int hashCode() {
+		return HexagonVertex.class.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return "HexagonVertex{" +
+				"id=" + id +
+				", posicio=" + posicio +
+				", hexagonId=" + (hexagon != null ? hexagon.getId() : null) +
+				", vertexId=" + (vertex != null ? vertex.getId() : null) +
+				'}';
+	}
+}
